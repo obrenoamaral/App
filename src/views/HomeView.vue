@@ -46,10 +46,15 @@
         <div class="mt-4">
           <strong>Padrão Desenhado:</strong>
           <PadraoComponent v-if="selectedOS.senhaDesenhada && selectedOS.senhaDesenhada.length > 0" :initialDrawing="selectedOS.senhaDesenhada" />
-          <div v-if="selectedOS.senhaFoto" class="mt-4">
-            <strong>Foto da Senha:</strong>
-            <img :src="selectedOS.senhaFoto" alt="Foto da Senha" class="mt-2 w-full h-auto rounded" />
-          </div>
+        </div>
+
+        <div class="mt-4" v-if="selectedOS.senhaFoto">
+          <strong>Foto:</strong>
+          <img :src="selectedOS.senhaFoto" alt="Foto da OS" class="mt-2 w-full h-auto rounded" />
+        </div>
+
+        <div class="mt-4" v-if="!selectedOS.senhaDesenhada && !selectedOS.senhaFoto">
+          <p>Nenhum padrão ou foto disponível.</p>
         </div>
 
         <div class="flex justify-end mt-4">
@@ -57,9 +62,6 @@
         </div>
       </div>
     </div>
-
-
-
 
     <!-- Modal de adição de OS -->
     <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
@@ -74,10 +76,12 @@
 
         <input
             type="file"
-            @change="handleFileUpload"
             accept="image/*"
-            class="border p-2 mb-4 w-full"
+            @change="handleFileUpload"
+            capture="environment"
+        class="border p-2 mb-4 w-full"
         />
+
 
         <PadraoComponent @save-drawing="handleSaveDrawing" />
         <div class="flex justify-end">
@@ -86,7 +90,6 @@
         </div>
       </div>
     </div>
-
 
     <!-- Modal de edição de OS -->
     <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
@@ -147,9 +150,9 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          this.newOS.senhaFoto = e.target.result; // Armazena a imagem como uma URL
+          this.newOS.senhaFoto = e.target.result; // Armazena a imagem em base64
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(file); // Converte o arquivo para base64
       }
     },
     async loadOS() {
@@ -173,30 +176,30 @@ export default {
       this.selectedOS.senhaDesenhada = JSON.parse(drawingData);
     },
     async addOS() {
-      const { numero, senhaFoto, senhaDesenhada } = this.newOS;
+      if (this.newOS.numero) {
+        const hasDrawing = this.newOS.senhaDesenhada && this.newOS.senhaDesenhada.length > 0;
+        const hasImage = this.newOS.senhaFoto;
 
-      if (numero) {
-        // Verifica se pelo menos um dos campos está preenchido
-        if (senhaFoto || senhaDesenhada) {
+        if (hasDrawing || hasImage) {
           const newOSData = {
             id: Date.now(),
-            numero,
+            numero: this.newOS.numero,
             dataRegistro: new Date().toISOString().slice(0, 10),
-            senhaDesenhada: senhaDesenhada ? JSON.stringify(senhaDesenhada) : null,
-            senhaFoto: senhaFoto || null, // Se a foto não existir, usa null
+            senhaDesenhada: JSON.stringify(this.newOS.senhaDesenhada || []), // Armazena como array
+            senhaFoto: this.newOS.senhaFoto || null, // Armazena a imagem
           };
 
           await this.db.put('os', newOSData);
-          this.newOS = { numero: '', senhaFoto: null, senhaDesenhada: null };
+          this.newOS = { numero: '', senhaFoto: null, senhaDesenhada: null }; // Reseta os campos
           this.closeAddModal();
 
           // Atualizar a lista de OS após adicionar
           await this.loadOS();
         } else {
-          alert('É necessário adicionar pelo menos a foto ou o padrão de desenho!');
+          alert('Adicione um padrão ou uma imagem!');
         }
       } else {
-        alert('Preencha o número da OS!');
+        alert('O número da OS é obrigatório!');
       }
     },
     viewOS(os) {
@@ -208,7 +211,8 @@ export default {
       this.showViewModal = false;
     },
     openEditModal(os) {
-      this.selectedOS = {...os};
+      this.selectedOS = { ...os };
+      this.selectedOS.senhaDesenhada = []; // Zera o padrão de desenho
       this.showEditModal = true;
     },
     closeEditModal() {

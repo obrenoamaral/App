@@ -3,8 +3,13 @@
     <svg
         ref="patternSvg"
         class="w-80 h-80"
+        @mousedown="startDrawing"
+        @mousemove="continueDrawing"
         @mouseup="stopDrawing"
         @mouseleave="stopDrawing"
+        @touchstart.prevent="startDrawingTouch"
+        @touchmove.prevent="continueDrawingTouch"
+        @touchend="stopDrawing"
     >
       <!-- Desenha as linhas conectando os pontos -->
       <line
@@ -24,14 +29,12 @@
           :cx="point.x"
           :cy="point.y"
           r="20"
-          :class="[
-          {
-            'fill-gray-400': !activePoints.includes(index),
-            'fill-blue-500': activePoints.includes(index),
-            'fill-green-500': index === activePoints[0], // Primeiro ponto em verde
-            'fill-red-500': index === activePoints[activePoints.length - 1] // Último ponto em vermelho
-          }
-        ]"
+          :class="[{
+          'fill-gray-400': !activePoints.includes(index),
+          'fill-blue-500': activePoints.includes(index),
+          'fill-green-500': index === activePoints[0],
+          'fill-red-500': index === activePoints[activePoints.length - 1]
+        }]"
           @mousedown="startDrawing(index)"
           @mouseover="continueDrawing(index)"
           class="stroke-gray-700"
@@ -51,15 +54,15 @@ export default {
   data() {
     return {
       points: [
-        {x: 50, y: 50},
-        {x: 150, y: 50},
-        {x: 250, y: 50},
-        {x: 50, y: 150},
-        {x: 150, y: 150},
-        {x: 250, y: 150},
-        {x: 50, y: 250},
-        {x: 150, y: 250},
-        {x: 250, y: 250},
+        { x: 50, y: 50 },
+        { x: 150, y: 50 },
+        { x: 250, y: 50 },
+        { x: 50, y: 150 },
+        { x: 150, y: 150 },
+        { x: 250, y: 150 },
+        { x: 50, y: 250 },
+        { x: 150, y: 250 },
+        { x: 250, y: 250 },
       ],
       lines: [],
       activePoints: [],
@@ -78,6 +81,10 @@ export default {
         this.activePoints.push(index);
       }
     },
+    startDrawingTouch(event) {
+      const pointIndex = this.getPointIndexFromTouch(event.touches[0]);
+      this.startDrawing(pointIndex);
+    },
     continueDrawing(index) {
       if (this.drawingStarted && !this.activePoints.includes(index)) {
         const lastPointIndex = this.activePoints[this.activePoints.length - 1];
@@ -89,6 +96,10 @@ export default {
         });
         this.activePoints.push(index);
       }
+    },
+    continueDrawingTouch(event) {
+      const pointIndex = this.getPointIndexFromTouch(event.touches[0]);
+      this.continueDrawing(pointIndex);
     },
     stopDrawing() {
       if (this.drawingStarted) {
@@ -122,6 +133,22 @@ export default {
           y2: this.points[endIdx].y,
         });
       }
+    },
+    getPointIndexFromTouch(touch) {
+      const svg = this.$refs.patternSvg;
+      const svgRect = svg.getBoundingClientRect();
+      const x = touch.clientX - svgRect.left;
+      const y = touch.clientY - svgRect.top;
+
+      // Verifique a distância ao redor de cada ponto para determinar qual foi tocado
+      for (let i = 0; i < this.points.length; i++) {
+        const point = this.points[i];
+        const distance = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
+        if (distance < 20) { // 20 é o raio do círculo
+          return i;
+        }
+      }
+      return -1; // Se nenhum ponto foi tocado
     },
   },
 };
