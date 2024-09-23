@@ -42,16 +42,24 @@
         <h2 class="text-xl mb-4">Detalhes da OS</h2>
         <p><strong>Número OS:</strong> {{ selectedOS.numero }}</p>
         <p><strong>Data de Registro:</strong> {{ selectedOS.dataRegistro }}</p>
-        <p class="mt-4"><strong>Padrão Desenhado:</strong></p>
 
-        <!-- Passe o padrão desenhado salvo para o PadraoComponent -->
-        <PadraoComponent :initialDrawing="selectedOS.senhaDesenhada" />
+        <div class="mt-4">
+          <strong>Padrão Desenhado:</strong>
+          <PadraoComponent v-if="selectedOS.senhaDesenhada && selectedOS.senhaDesenhada.length > 0" :initialDrawing="selectedOS.senhaDesenhada" />
+          <div v-if="selectedOS.senhaFoto" class="mt-4">
+            <strong>Foto da Senha:</strong>
+            <img :src="selectedOS.senhaFoto" alt="Foto da Senha" class="mt-2 w-full h-auto rounded" />
+          </div>
+        </div>
 
         <div class="flex justify-end mt-4">
           <button @click="closeViewModal" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">Fechar</button>
         </div>
       </div>
     </div>
+
+
+
 
     <!-- Modal de adição de OS -->
     <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
@@ -63,6 +71,14 @@
             placeholder="Número da OS"
             class="border p-2 mb-4 w-full"
         />
+
+        <input
+            type="file"
+            @change="handleFileUpload"
+            accept="image/*"
+            class="border p-2 mb-4 w-full"
+        />
+
         <PadraoComponent @save-drawing="handleSaveDrawing" />
         <div class="flex justify-end">
           <button @click="addOS" class="bg-orange-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2">Adicionar</button>
@@ -70,6 +86,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- Modal de edição de OS -->
     <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
@@ -125,11 +142,22 @@ export default {
         },
       });
     },
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.newOS.senhaFoto = e.target.result; // Armazena a imagem como uma URL
+        };
+        reader.readAsDataURL(file);
+      }
+    },
     async loadOS() {
       const allOS = await this.db.getAll('os');
       this.osList = allOS.map(os => ({
         ...os,
         senhaDesenhada: JSON.parse(os.senhaDesenhada || '[]'), // Convertendo de volta para array
+        senhaFoto: os.senhaFoto || null, // Certifique-se de que a foto esteja disponível
       }));
     },
     openAddModal() {
@@ -145,26 +173,32 @@ export default {
       this.selectedOS.senhaDesenhada = JSON.parse(drawingData);
     },
     async addOS() {
-      if (this.newOS.numero && this.newOS.senhaDesenhada) {
-        const newOSData = {
-          id: Date.now(),
-          numero: this.newOS.numero,
-          dataRegistro: new Date().toISOString().slice(0, 10),
-          senhaDesenhada: JSON.stringify(this.newOS.senhaDesenhada),
-        };
+      const { numero, senhaFoto, senhaDesenhada } = this.newOS;
 
-        await this.db.put('os', newOSData);
-        this.newOS = { numero: '', senhaDesenhada: null };
-        this.closeAddModal();
+      if (numero) {
+        // Verifica se pelo menos um dos campos está preenchido
+        if (senhaFoto || senhaDesenhada) {
+          const newOSData = {
+            id: Date.now(),
+            numero,
+            dataRegistro: new Date().toISOString().slice(0, 10),
+            senhaDesenhada: senhaDesenhada ? JSON.stringify(senhaDesenhada) : null,
+            senhaFoto: senhaFoto || null, // Se a foto não existir, usa null
+          };
 
-        // Atualizar a lista de OS após adicionar
-        await this.loadOS();
+          await this.db.put('os', newOSData);
+          this.newOS = { numero: '', senhaFoto: null, senhaDesenhada: null };
+          this.closeAddModal();
+
+          // Atualizar a lista de OS após adicionar
+          await this.loadOS();
+        } else {
+          alert('É necessário adicionar pelo menos a foto ou o padrão de desenho!');
+        }
       } else {
-        alert('Preencha todos os campos!');
+        alert('Preencha o número da OS!');
       }
     },
-
-
     viewOS(os) {
       this.selectedOS = { ...os };
 
