@@ -2,7 +2,8 @@
   <div class="flex flex-col items-center justify-center">
     <svg
         ref="patternSvg"
-        class="w-80 h-80"
+        class="w-80 h-80 border-none outline-none focus:outline-none ring-0"
+        style="border: none !important; outline: none !important;"
         @mousedown="startDrawing"
         @mousemove="continueDrawing"
         @mouseup="stopDrawing"
@@ -19,7 +20,7 @@
           :y1="line.y1"
           :x2="line.x2"
           :y2="line.y2"
-          stroke="#3b82f6"
+          stroke="#989596"
           stroke-width="8"
       />
       <!-- Desenha os pontos interativos -->
@@ -31,9 +32,9 @@
           r="30"
           :class="[{
           'fill-gray-300': !activePoints.includes(index),
-          'fill-blue-500': activePoints.includes(index),
-          'fill-green-500': index === activePoints[0],
-          'fill-red-500': index === activePoints[activePoints.length - 1]
+          'fill-gray-500': activePoints.includes(index),
+          'fill-green-600': index === activePoints[0],
+          'fill-red-600': index === activePoints[activePoints.length - 1]
         }]"
           @mousedown="startDrawing(index)"
           @mouseover="continueDrawing(index)"

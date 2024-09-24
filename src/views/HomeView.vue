@@ -51,14 +51,17 @@
 
     <!-- Modal de visualização da OS -->
     <div v-if="showViewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg text-black w-80">
-        <h2 class="text-xl mb-4">Detalhes da OS</h2>
-        <p><strong>Número OS:</strong> {{ selectedOS.numero }}</p>
-        <p><strong>Data de Registro:</strong> {{ selectedOS.dataRegistro }}</p>
-
-        <div class="mt-4">
-          <strong>Padrão Desenhado:</strong>
-          <PadraoComponent v-if="selectedOS.senhaDesenhada && selectedOS.senhaDesenhada.length > 0" :initialDrawing="selectedOS.senhaDesenhada" />
+      <div class="bg-gray-800 rounded-lg text-white w-11/12">
+        <div class="bg-orange-500 p-4 rounded-t-lg">
+          <h2 class="text-2xl text-center font-bold">Detalhes da OS</h2>
+        </div>
+        <div class="p-6">
+          <p class="text"><strong>Número OS:</strong> <strong>{{ selectedOS.numero }}</strong></p>
+          <p class="text"><strong>Data de Registro:</strong> <strong>{{ selectedOS.dataRegistro }}</strong></p>
+        </div>
+        <div class="mt-4 px-6">
+          <strong>Padrão:</strong>
+          <PadraoComponent v-if="selectedOS.senhaDesenhada && selectedOS.senhaDesenhada.length > 0" :initialDrawing="selectedOS.senhaDesenhada" class="border-none"/>
         </div>
 
         <div class="mt-4" v-if="selectedOS.senhaFoto">
@@ -70,7 +73,7 @@
           <p>Nenhum padrão ou foto disponível.</p>
         </div>
 
-        <div class="flex justify-end mt-4">
+        <div class="flex justify-end mt-4 px-6 py-4">
           <button @click="closeViewModal" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">Fechar</button>
         </div>
       </div>
@@ -78,8 +81,8 @@
 
     <!-- Modal de adição de OS -->
     <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4">
-      <div class="bg-white p-6 rounded-lg text-black w-full max-w-md">
-        <h2 class="text-xl mb-4">Adicionar Nova OS</h2>
+      <div class="bg-gray-800 p-6 rounded-lg text-black w-full max-w-md">
+        <h2 class="text-2xl text-white text-center font-bold mb-4">Adicionar Nova OS</h2>
         <input
             type="text"
             v-model="newOS.numero"
@@ -93,7 +96,7 @@
             accept="image/*"
             @change="handleFileUpload"
             capture="environment"
-            class="border p-2 mb-4 w-full"
+            class="border p-2 mb-4 w-full bg-white"
         />
 
         <PadraoComponent @save-drawing="handleSaveDrawing" />
@@ -209,7 +212,7 @@ export default {
           const newOSData = {
             id: Date.now(),
             numero: this.newOS.numero,
-            dataRegistro: new Date().toISOString().slice(0, 10),
+            dataRegistro: new Date().toLocaleDateString('pt-BR'),
             senhaDesenhada: JSON.stringify(this.newOS.senhaDesenhada || []), // Armazena como array
             senhaFoto: this.newOS.senhaFoto || null, // Armazena a imagem
           };
@@ -245,18 +248,32 @@ export default {
     },
     async updateOS() {
       if (this.selectedOS.numero) {
-        await this.db.put('os', {
-          ...this.selectedOS,
-          senhaDesenhada: JSON.stringify(this.selectedOS.senhaDesenhada),
+        // Confirmação antes de salvar
+        const { value } = await Dialog.confirm({
+          title: 'Confirmação',
+          message: 'Você realmente deseja salvar as alterações desta OS?',
         });
 
-        this.closeEditModal();
+        if (value) {
+          // Verifica se o padrão desenhado foi alterado
+          if (!this.selectedOS.senhaDesenhada || this.selectedOS.senhaDesenhada.length === 0) {
+            // Mantém o padrão existente caso não tenha sido alterado
+            this.selectedOS.senhaDesenhada = JSON.parse(this.osList.find(os => os.id === this.selectedOS.id).senhaDesenhada);
+          }
 
-        // Atualizar a lista de OS após editar
-        await this.loadOS(); // Mantenha esta linha
+          await this.db.put('os', {
+            ...this.selectedOS,
+            senhaDesenhada: JSON.stringify(this.selectedOS.senhaDesenhada),
+          });
 
-        // Reiniciar a `selectedOS` após edição
-        this.selectedOS = {}; // Reseta para evitar conflitos na próxima edição
+          this.closeEditModal();
+
+          // Atualizar a lista de OS após editar
+          await this.loadOS();
+
+          // Reiniciar a `selectedOS` após edição
+          this.selectedOS = {};
+        }
       } else {
         alert('Preencha todos os campos!');
       }
