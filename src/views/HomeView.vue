@@ -13,7 +13,7 @@
           inputmode="numeric"
           class="p-2 rounded-l w-full focus:outline-none focus:ring-0 border border-gray-300 text-black"
       />
-      <button @click="searchOS" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-r">Buscar</button>
+      <button @click="searchOS" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-r font-bold">Buscar</button>
     </div>
 
 
@@ -50,7 +50,7 @@
     </button>
 
     <!-- Modal de visualização da OS -->
-    <div v-if="showViewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+    <div v-if="showViewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center overflow-auto h-full">
       <div class="bg-gray-800 rounded-lg text-white w-11/12">
         <div class="bg-orange-500 p-4 rounded-t-lg">
           <h2 class="text-2xl text-center font-bold">Detalhes da OS</h2>
@@ -59,12 +59,12 @@
           <p class="text"><strong>Número OS:</strong> <strong>{{ selectedOS.numero }}</strong></p>
           <p class="text"><strong>Data de Registro:</strong> <strong>{{ selectedOS.dataRegistro }}</strong></p>
         </div>
-        <div class="mt-4 px-6">
+        <div class="mt-4 px-6 pointer-events-none">
           <strong>Padrão:</strong>
           <PadraoComponent v-if="selectedOS.senhaDesenhada && selectedOS.senhaDesenhada.length > 0" :initialDrawing="selectedOS.senhaDesenhada" class="border-none"/>
         </div>
 
-        <div class="mt-4" v-if="selectedOS.senhaFoto">
+        <div class="mt-4 px-6" v-if="selectedOS.senhaFoto">
           <strong>Foto:</strong>
           <img :src="selectedOS.senhaFoto" alt="Foto da OS" class="mt-2 w-full h-auto rounded" />
         </div>
@@ -80,27 +80,30 @@
     </div>
 
     <!-- Modal de adição de OS -->
-    <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4">
-      <div class="bg-gray-800 p-6 rounded-lg text-black w-full max-w-md">
-        <h2 class="text-2xl text-white text-center font-bold mb-4">Adicionar Nova OS</h2>
-        <input
-            type="text"
-            v-model="newOS.numero"
-            placeholder="Número da OS"
-            inputmode="numeric"
-            class="border p-2 mb-4 w-full"
-        />
-
+    <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 overflow-auto h-full">
+      <div class="bg-gray-800  rounded-lg text-black w-full max-w-md">
+        <h2 class="text-2xl text-white text-center font-bold mb-4 p-6 bg-orange-500 rounded-t-lg">Adicionar Nova OS</h2>
+        <div class="px-6">
+          <input
+              type="text"
+              v-model="newOS.numero"
+              placeholder="Número da OS"
+              inputmode="numeric"
+              class="border p-2 mb-4 w-full rounded "
+          />
+        </div>
+        <div class="px-6">
         <input
             type="file"
             accept="image/*"
             @change="handleFileUpload"
             capture="environment"
-            class="border p-2 mb-4 w-full bg-white"
+            class="border p-2 mb-4 w-full bg-white rounded"
         />
+        </div>
 
         <PadraoComponent @save-drawing="handleSaveDrawing" />
-        <div class="flex justify-end mt-4">
+        <div class="flex justify-end mt-4 p-6">
           <button @click="addOS" class="bg-orange-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2">Adicionar</button>
           <button @click="closeAddModal" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">Cancelar</button>
         </div>
@@ -109,7 +112,7 @@
 
 
     <!-- Modal de edição de OS -->
-    <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+    <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center overflow-auto h-full">
       <div class="bg-white p-6 rounded-lg text-black w-80">
         <h2 class="text-xl mb-4">Editar OS</h2>
         <input
