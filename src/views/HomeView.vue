@@ -11,10 +11,11 @@
           v-model="searchQuery"
           placeholder="Buscar OS pelo número"
           inputmode="numeric"
-          class="border p-2 rounded-l w-full"
+          class="p-2 rounded-l w-full focus:outline-none focus:ring-0 border border-gray-300 text-black"
       />
       <button @click="searchOS" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-r">Buscar</button>
     </div>
+
 
     <!-- Lista de OS -->
     <ul class="w-full space-y-4 mb-10 p-4">

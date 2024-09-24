@@ -149,6 +149,17 @@ export default {
       }
       return -1; // Se nenhum ponto foi tocado
     },
+    mounted() {
+      window.addEventListener('resetPattern', this.handleResetPattern);
+    },
+    beforeUnmount() {
+      window.removeEventListener('resetPattern', this.handleResetPattern);
+    },
+    methods: {
+      handleResetPattern() {
+        // Lógica para resetar o padrão
+      }
+    }
   },
 };
 </script>

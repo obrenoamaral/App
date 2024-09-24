@@ -1,5 +1,6 @@
 {
   "appId": "com.digitalcore.securepass",
-  "appName": "securepass",
-  "webDir": "dist"
+  "appName": "SecurePass",
+  "webDir": "dist",
+  "bundledWebRuntime": false
 }
