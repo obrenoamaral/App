@@ -4,6 +4,18 @@
       <h1 class="text-2xl font-bold text-white mb-2">SecurePass</h1>
     </div>
 
+    <!-- Campo de busca -->
+    <div class="w-full p-4 flex justify-center">
+      <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Buscar OS pelo número"
+          inputmode="numeric"
+          class="border p-2 rounded-l w-full"
+      />
+      <button @click="searchOS" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-r">Buscar</button>
+    </div>
+
     <!-- Lista de OS -->
     <ul class="w-full space-y-4 mb-10 p-4">
       <li
@@ -64,13 +76,14 @@
     </div>
 
     <!-- Modal de adição de OS -->
-    <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg text-black w-80">
+    <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4">
+      <div class="bg-white p-6 rounded-lg text-black w-full max-w-md">
         <h2 class="text-xl mb-4">Adicionar Nova OS</h2>
         <input
             type="text"
             v-model="newOS.numero"
             placeholder="Número da OS"
+            inputmode="numeric"
             class="border p-2 mb-4 w-full"
         />
 
@@ -79,17 +92,17 @@
             accept="image/*"
             @change="handleFileUpload"
             capture="environment"
-        class="border p-2 mb-4 w-full"
+            class="border p-2 mb-4 w-full"
         />
 
-
         <PadraoComponent @save-drawing="handleSaveDrawing" />
-        <div class="flex justify-end">
+        <div class="flex justify-end mt-4">
           <button @click="addOS" class="bg-orange-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2">Adicionar</button>
           <button @click="closeAddModal" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">Cancelar</button>
         </div>
       </div>
     </div>
+
 
     <!-- Modal de edição de OS -->
     <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
@@ -114,6 +127,7 @@
 <script>
 import { openDB } from 'idb';
 import PadraoComponent from "@/components/PadraoComponent.vue";
+import { Dialog } from '@capacitor/dialog';
 
 export default {
   components: {
@@ -131,6 +145,7 @@ export default {
       },
       selectedOS: {},
       osList: [],
+      searchQuery: '',
     };
   },
   async mounted() {
@@ -162,6 +177,15 @@ export default {
         senhaDesenhada: JSON.parse(os.senhaDesenhada || '[]'), // Convertendo de volta para array
         senhaFoto: os.senhaFoto || null, // Certifique-se de que a foto esteja disponível
       }));
+    },
+    searchOS() {
+      const foundOS = this.osList.find(os => os.numero === this.searchQuery.trim());
+      if (foundOS) {
+        this.viewOS(foundOS); // Abre o modal de visualização
+        this.searchQuery = ''; // Limpa o campo de busca
+      } else {
+        alert('OS não encontrada!');
+      }
     },
     openAddModal() {
       this.showAddModal = true;
@@ -236,9 +260,17 @@ export default {
         alert('Preencha todos os campos!');
       }
     },
-    deleteOS(id) {
-      this.osList = this.osList.filter(os => os.id !== id);
-      this.db.delete('os', id);
+    async deleteOS(id) {
+      const { value } = await Dialog.confirm({
+        title: 'Confirmação',
+        message: 'Você realmente deseja excluir esta OS?',
+      });
+
+      if (value) {
+        this.osList = this.osList.filter(os => os.id !== id);
+        await this.db.delete('os', id);
+        alert("OS excluída com sucesso!");
+      }
     },
   },
 };

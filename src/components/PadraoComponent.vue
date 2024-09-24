@@ -20,7 +20,7 @@
           :x2="line.x2"
           :y2="line.y2"
           stroke="#3b82f6"
-          stroke-width="4"
+          stroke-width="8"
       />
       <!-- Desenha os pontos interativos -->
       <circle
@@ -28,16 +28,15 @@
           :key="index"
           :cx="point.x"
           :cy="point.y"
-          r="20"
+          r="30"
           :class="[{
-          'fill-gray-400': !activePoints.includes(index),
+          'fill-gray-300': !activePoints.includes(index),
           'fill-blue-500': activePoints.includes(index),
           'fill-green-500': index === activePoints[0],
           'fill-red-500': index === activePoints[activePoints.length - 1]
         }]"
           @mousedown="startDrawing(index)"
           @mouseover="continueDrawing(index)"
-          class="stroke-gray-700"
       ></circle>
     </svg>
   </div>
