@@ -102,8 +102,9 @@
         />
         </div>
 
-        <PadraoComponent @save-drawing="handleSaveDrawing" />
+        <PadraoComponent ref="padraoComponent" @save-drawing="handleSaveDrawing" />
         <div class="flex justify-end mt-4 p-6">
+          <button @click="resetPadrao" class="text-white py-2 px-4 rounded mr-2"><i class=" fa fa-repeat"></i></button>
           <button @click="addOS" class="bg-orange-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2">Adicionar</button>
           <button @click="closeAddModal" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">Cancelar</button>
         </div>
@@ -211,6 +212,14 @@ export default {
     },
     async addOS() {
       if (this.newOS.numero) {
+        // Verifica se o número da OS já existe na lista
+        const osExists = this.osList.some(os => os.numero === this.newOS.numero.trim());
+
+        if (osExists) {
+          alert('O número da OS já existe!');
+          return; // Bloqueia a adição de uma nova OS com o mesmo número
+        }
+
         const hasDrawing = this.newOS.senhaDesenhada && this.newOS.senhaDesenhada.length > 0;
         const hasImage = this.newOS.senhaFoto;
 
@@ -219,8 +228,8 @@ export default {
             id: Date.now(),
             numero: this.newOS.numero,
             dataRegistro: new Date().toLocaleDateString('pt-BR'),
-            senhaDesenhada: JSON.stringify(this.newOS.senhaDesenhada || []), // Armazena como array
-            senhaFoto: this.newOS.senhaFoto || null, // Armazena a imagem
+            senhaDesenhada: JSON.stringify(this.newOS.senhaDesenhada || []),
+            senhaFoto: this.newOS.senhaFoto || null,
           };
 
           await this.db.put('os', newOSData);
@@ -249,6 +258,9 @@ export default {
       this.selectedOS = { ...os };
       this.selectedOS.senhaDesenhada = []; // Zera o padrão de desenho
       this.showEditModal = true;
+    },
+    resetPadrao() {
+      this.$refs.padraoComponent.resetDrawing();
     },
     closeEditModal() {
       this.showEditModal = false;

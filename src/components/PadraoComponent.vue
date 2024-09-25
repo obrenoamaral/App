@@ -89,34 +89,74 @@ export default {
   },
   methods: {
     startDrawing(index) {
-      if (!this.drawingStarted && this.activePoints.length === 0) {
+      if (!this.drawingStarted) {
         this.drawingStarted = true;
-        this.activePoints.push(index);
+
+        // Verificar se o clique foi em um ponto válido
+        const pointIndex = this.getPointIndexFromEvent(event);
+        if (pointIndex !== -1 && this.activePoints.length === 0) {
+          this.activePoints.push(pointIndex);
+        }
       }
+    },
+    getPointIndexFromEvent(index) {
+      const svg = this.$refs.patternSvg;
+      const svgRect = svg.getBoundingClientRect();
+      const x = event.clientX - svgRect.left;
+      const y = event.clientY - svgRect.top;
+
+      // Verificar a distância em relação aos pontos
+      for (let i = 0; i < this.points.length; i++) {
+        const point = this.points[i];
+        const distance = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
+        if (distance < 30) { // 30 é o raio do círculo
+          return i;
+        }
+      }
+      return -1; // Nenhum ponto foi tocado
     },
 
     startDrawingTouch(event) {
       if (this.activePoints.length === 0) {
         const pointIndex = this.getPointIndexFromTouch(event.touches[0]);
-        this.startDrawing(pointIndex);
+        if (pointIndex !== -1) {
+          this.drawingStarted = true;
+          this.activePoints.push(pointIndex);
+        }
       }
     },
+
     continueDrawing(index) {
-      if (this.drawingStarted && !this.activePoints.includes(index)) {
-        const lastPointIndex = this.activePoints[this.activePoints.length - 1];
-        this.lines.push({
-          x1: this.points[lastPointIndex].x,
-          y1: this.points[lastPointIndex].y,
-          x2: this.points[index].x,
-          y2: this.points[index].y,
-        });
-        this.activePoints.push(index);
+      if (this.drawingStarted) {
+        const pointIndex = this.getPointIndexFromEvent(event);
+        if (pointIndex !== -1 && !this.activePoints.includes(pointIndex)) {
+          const lastPointIndex = this.activePoints[this.activePoints.length - 1];
+          this.lines.push({
+            x1: this.points[lastPointIndex].x,
+            y1: this.points[lastPointIndex].y,
+            x2: this.points[pointIndex].x,
+            y2: this.points[pointIndex].y,
+          });
+          this.activePoints.push(pointIndex);
+        }
       }
     },
     continueDrawingTouch(event) {
-      const pointIndex = this.getPointIndexFromTouch(event.touches[0]);
-      this.continueDrawing(pointIndex);
-    },
+      if (this.drawingStarted) {
+        const pointIndex = this.getPointIndexFromTouch(event.touches[0]);
+        if (pointIndex !== -1 && !this.activePoints.includes(pointIndex)) {
+          const lastPointIndex = this.activePoints[this.activePoints.length - 1];
+          this.lines.push({
+            x1: this.points[lastPointIndex].x,
+            y1: this.points[lastPointIndex].y,
+            x2: this.points[pointIndex].x,
+            y2: this.points[pointIndex].y,
+          });
+          this.activePoints.push(pointIndex);
+        }
+      }
+    }
+,
     stopDrawing() {
       if (this.drawingStarted) {
         this.drawingStarted = false;
@@ -163,7 +203,7 @@ export default {
       for (let i = 0; i < this.points.length; i++) {
         const point = this.points[i];
         const distance = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
-        if (distance < 20) { // 20 é o raio do círculo
+        if (distance < 30) { // Raio ajustado para pontos de toque
           return i;
         }
       }
