@@ -43,7 +43,7 @@
 
     <!-- Botão de adicionar OS -->
     <button
-        class="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg w-10 h-10"
+        class="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg w-14 h-14"
         @click="openAddModal"
     >
       <i class="fas fa-plus"></i>
