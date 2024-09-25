@@ -50,8 +50,8 @@
     </button>
 
     <!-- Modal de visualização da OS -->
-    <div v-if="showViewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center overflow-auto h-full">
-      <div class="bg-gray-800 rounded-lg text-white w-11/12">
+    <div v-if="showViewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-2 py-6">
+    <div class="bg-gray-800 rounded-lg text-white w-full h-5/6 overflow-auto">
         <div class="bg-orange-500 p-4 rounded-t-lg">
           <h2 class="text-2xl text-center font-bold">Detalhes da OS</h2>
         </div>
@@ -59,8 +59,8 @@
           <p class="text"><strong>Número OS:</strong> <strong>{{ selectedOS.numero }}</strong></p>
           <p class="text"><strong>Data de Registro:</strong> <strong>{{ selectedOS.dataRegistro }}</strong></p>
         </div>
-        <div class="mt-4 px-6 pointer-events-none">
-          <strong>Padrão:</strong>
+        <div class="mt-4 pointer-events-none">
+          <strong class="pl-6">Padrão:</strong>
           <PadraoComponent v-if="selectedOS.senhaDesenhada && selectedOS.senhaDesenhada.length > 0" :initialDrawing="selectedOS.senhaDesenhada" class="border-none"/>
         </div>
 
@@ -80,7 +80,7 @@
     </div>
 
     <!-- Modal de adição de OS -->
-    <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 overflow-auto h-full">
+    <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-2 overflow-auto h-full">
       <div class="bg-gray-800  rounded-lg text-black w-full max-w-md">
         <h2 class="text-2xl text-white text-center font-bold mb-4 p-6 bg-orange-500 rounded-t-lg">Adicionar Nova OS</h2>
         <div class="px-6">
@@ -98,7 +98,7 @@
             accept="image/*"
             @change="handleFileUpload"
             capture="environment"
-            class="border p-2 mb-4 w-full bg-white rounded"
+            class="border p-2 w-full bg-white rounded"
         />
         </div>
 
@@ -112,18 +112,21 @@
 
 
     <!-- Modal de edição de OS -->
-    <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center overflow-auto h-full">
-      <div class="bg-white p-6 rounded-lg text-black w-80">
-        <h2 class="text-xl mb-4">Editar OS</h2>
-        <input
-            type="text"
-            v-model="selectedOS.numero"
-            placeholder="Número da OS"
-            class="border p-2 mb-4 w-full"
-        />
+    <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center overflow-auto h-full px-2">
+      <div class="bg-gray-800 rounded-lg text-black w-full">
+        <h2 class="text-2xl mb-4 font-bold text-white text-center w-full bg-orange-500 p-4 rounded-t-lg">Editar OS</h2>
+        <div class="p-6">
+          <input
+              type="text"
+              v-model="selectedOS.numero"
+              placeholder="Número da OS"
+              class="border p-2 mb-4 w-full rounded"
+          />
+        </div>
+
         <PadraoComponent :initial-drawing="selectedOS.senhaDesenhada" @save-drawing="handleSaveDrawingEdit" />
-        <div class="flex justify-end">
-          <button @click="updateOS" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2">Atualizar</button>
+        <div class="flex justify-end p-6">
+          <button @click="updateOS" class="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded mr-2">Atualizar</button>
           <button @click="closeEditModal" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">Cancelar</button>
         </div>
       </div>
@@ -239,6 +242,7 @@ export default {
       this.showViewModal = true;
     },
     closeViewModal() {
+      console.log('Fechar modal de visualização');
       this.showViewModal = false;
     },
     openEditModal(os) {

@@ -31,14 +31,27 @@
           :cy="point.y"
           r="30"
           :class="[{
-          'fill-gray-500': !activePoints.includes(index),
-          'fill-gray-600': activePoints.includes(index),
-          'fill-green-700': index === activePoints[0],
-          'fill-red-700': index === activePoints[activePoints.length - 1]
-        }]"
+    'fill-gray-500': !activePoints.includes(index),
+    'fill-gray-600': activePoints.includes(index),
+    'fill-green-700': index === activePoints[0],
+    'fill-red-700': index === activePoints[activePoints.length - 1]
+  }]"
           @mousedown="startDrawing(index)"
           @mouseover="continueDrawing(index)"
       ></circle>
+
+      <!-- Adiciona os números dentro das bolinhas ativas -->
+      <text
+          v-for="(point, index) in activePoints"
+          :key="'text-' + index"
+          :x="points[point].x"
+          :y="points[point].y + 8"
+      text-anchor="middle"
+      font-size="20"
+      fill="#fff"
+      >
+      {{ index + 1 }}
+      </text>
     </svg>
   </div>
 </template>
@@ -76,14 +89,17 @@ export default {
   },
   methods: {
     startDrawing(index) {
-      if (!this.drawingStarted) {
+      if (!this.drawingStarted && this.activePoints.length === 0) {
         this.drawingStarted = true;
         this.activePoints.push(index);
       }
     },
+
     startDrawingTouch(event) {
-      const pointIndex = this.getPointIndexFromTouch(event.touches[0]);
-      this.startDrawing(pointIndex);
+      if (this.activePoints.length === 0) {
+        const pointIndex = this.getPointIndexFromTouch(event.touches[0]);
+        this.startDrawing(pointIndex);
+      }
     },
     continueDrawing(index) {
       if (this.drawingStarted && !this.activePoints.includes(index)) {
@@ -105,6 +121,9 @@ export default {
       if (this.drawingStarted) {
         this.drawingStarted = false;
         this.saveDrawing();
+        // Desabilita a interação após o desenho ser finalizado
+        this.$refs.patternSvg.removeEventListener('mousedown', this.startDrawing);
+        this.$refs.patternSvg.removeEventListener('touchstart', this.startDrawingTouch);
       }
     },
     saveDrawing() {
